@@ -1,20 +1,22 @@
 import * as React from "react";
 import { render } from "react-dom";
-import Hello from "./components/Hello";
+//import Hello from "./components/Hello";
+import { createStore } from 'redux';
+import { enthusiasm } from './reducers/index';
+import { StoreState } from './types/index';
+import Hello from './containers/Hello';
+import { Provider } from 'react-redux';
+import { EnthusiasmAction } from './actions/index';
 
-const styles = {
-  fontFamily: "sans-serif",
-  textAlign: "center"
-};
-
-const App = () => (
-  <div style={styles}>
-    <Hello name="TypeScript" enthusiasmLevel={10} />
-    <h2>Start editing to see some magic happen {"\u2728"}</h2>
-  </div>
+const store = createStore<StoreState, EnthusiasmAction, any, any>(enthusiasm, {
+  enthusiasmLevel: 1,
+  languageName: 'TypeScript'
+  }
 );
 
 render(
-  <App />, 
-  document.getElementById("root") as HTMLElement
+  <Provider store={store}>
+    <Hello />
+  </Provider>,
+  document.getElementById('root') as HTMLElement
 );
