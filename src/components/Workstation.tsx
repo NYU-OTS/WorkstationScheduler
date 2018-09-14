@@ -29,4 +29,14 @@ export class Workstation {
       this.availability[i] = availableToday;
     }      
   }
+
+  public listSlots(day: number){
+    let slots: string[] = []
+
+    for(let i: number = 0; i < this.slots[day].length; ++i){
+      slots.push(this.slots[day][i]);
+    } 
+
+    return slots
+  }
 }
