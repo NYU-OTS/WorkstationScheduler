@@ -1,17 +1,19 @@
 import * as React from "react";
 import { Workstation } from "./Workstation";
+import './table.css'
 
-export interface Props {
+export interface SchedulerProps {
   name: string;
   // onAdd?: () => void;
   // onDelete?: () => void;
   // onEdit?: () => void;
 } 
 
-interface State {
+interface SchedulerState {
   name: string
   workstations: Workstation[];
   day: number
+  userName: string
 }
 
 // interface WorkstationJson{
@@ -19,13 +21,13 @@ interface State {
 //   days: [string, string][][]
 // }
 
-export class Scheduler extends React.Component<Props, State>{
+export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   static readonly daysName = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
-  constructor(props: Props){
+  constructor(props: SchedulerProps){
     super(props);
     this.state = { name: props.name, workstations: [new Workstation(0, "722"), 
-    new Workstation(1, "723"), new Workstation(2, "724")], day: -1};
+    new Workstation(1, "723"), new Workstation(2, "724")], day: -1, userName: "Yiyang"};
   }
 
   public render(){
@@ -52,9 +54,12 @@ export class Scheduler extends React.Component<Props, State>{
     //     })
     //   })
     // })
+    let counter: number = 0;
 
     return(
       <div>
+        <h1>Hello, {this.state.userName} </h1>
+        <NameForm parent={this}/>
         <h1> {this.state.name} </h1>
         <table>
           <tr>
@@ -66,7 +71,7 @@ export class Scheduler extends React.Component<Props, State>{
           </tr>
           <tr>
           {
-            days.map(function(day){
+            days.map((day) => {
               return (
                 <td>
                 Available workstations: <br />
@@ -74,7 +79,7 @@ export class Scheduler extends React.Component<Props, State>{
                 {day.toString()}
                 <br />
                 {
-                  <button>Schedule</button>
+                  <button onClick={this.handleScheduleClick.bind(this, counter++)}>Schedule</button>
                 }
               </td>
               );
@@ -108,5 +113,48 @@ export class Scheduler extends React.Component<Props, State>{
       );
     }
     return;
+  }
+
+  handleScheduleClick(day: number){
+    this.setState({day: day});
+  }
+}
+
+interface NameFormProps {
+  parent: Scheduler;
+} 
+
+interface NameFormState {
+  value: string
+}
+
+class NameForm extends React.Component<NameFormProps, NameFormState> {
+  constructor(props: NameFormProps) {
+    super(props);
+    this.state = {value: ''};
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event: any) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event: any) {
+    this.props.parent.setState({userName: this.state.value});
+    event.preventDefault();
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Change name:
+          <input type="text" value={this.state.value} onChange={this.handleChange} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
   }
 }
