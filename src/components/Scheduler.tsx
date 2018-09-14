@@ -71,7 +71,6 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
               return (
                 <td>
                 Available workstations: <br />
-                
                 {day.toString()}
                 <br />
                 {
@@ -172,14 +171,16 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   }
 
   getSlotButton(userName: string, registeredName: string, day: number, timeSlot: number, workstation: number){
+    if(userName == ""){
+      return
+    }
     if(userName == registeredName){
-    return(<button onClick={this.handleRemoveClick.bind(this, day, timeSlot, workstation)}>Remove</button>);
+      return(<button onClick={this.handleRemoveClick.bind(this, day, timeSlot, workstation)}>Remove</button>);
     }
-    else{
-      if(registeredName == "empty"){
-        return(<button onClick={this.handleRegisterClick.bind(this, userName, day, timeSlot, workstation)}>Register</button>)
-      }
+    if(registeredName == "empty"){
+      return(<button onClick={this.handleRegisterClick.bind(this, userName, day, timeSlot, workstation)}>Register</button>)
     }
+    
     return
   }
 }
