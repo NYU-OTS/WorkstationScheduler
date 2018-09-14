@@ -11,6 +11,7 @@ export interface Props {
 interface State {
   name: string
   workstations: Workstation[];
+  day: number
 }
 
 // interface WorkstationJson{
@@ -19,31 +20,38 @@ interface State {
 // }
 
 export class Scheduler extends React.Component<Props, State>{
+  static readonly daysName = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
   constructor(props: Props){
     super(props);
-    this.state = { name: props.name, workstations: [new Workstation("722"), 
-    new Workstation("723"), new Workstation("724")]};
+    this.state = { name: props.name, workstations: [new Workstation(0, "722"), 
+    new Workstation(1, "723"), new Workstation(2, "724")], day: -1};
   }
 
   public render(){
     let days: number[][] = [[], [], [], [], []];
-    let counter: number = 0;
 
     this.state.workstations.forEach(function(workstation){
-      let innerCounter: number = 0;
-      workstation.days.forEach(function(day){
-        day.forEach(function(slot){
-          let startHour: number = parseInt(slot[0].slice(0, 2));
-          let startMin: number = parseInt(slot[0].slice(2, 4));
-          let endHour: number = parseInt(slot[1].slice(0, 2));
-          let endMin: number = parseInt(slot[1].slice(2, 4));
-          let timeIntervalMin: number = (endHour - startHour) * 60 + endHour - startMin;
-        })
-        innerCounter++;
-      })
-      counter++;
+      workstation.recalculateAvailability();
+      for(let i: number = 0; i < days.length; ++i){
+        if(workstation.availability[i]){
+          days[i].push(workstation.id);
+        }
+      } 
     })
+
+    // this.state.workstations.forEach(function(workstation){
+    //   workstation.slots.forEach(function(day){
+
+    //     day.forEach(function(slot){
+    //       let startHour: number = parseInt(slot[0].slice(0, 2));
+    //       let startMin: number = parseInt(slot[0].slice(2, 4));
+    //       let endHour: number = parseInt(slot[1].slice(0, 2));
+    //       let endMin: number = parseInt(slot[1].slice(2, 4));
+    //       let timeIntervalMin: number = (endHour - startHour) * 60 + endHour - startMin;
+    //     })
+    //   })
+    // })
 
     return(
       <div>
@@ -57,26 +65,48 @@ export class Scheduler extends React.Component<Props, State>{
             <th>Friday</th>
           </tr>
           <tr>
-            <td>
-            Available workstations: 
-            {
-
-              <button>Schedule</button>
-            }
-            </td>
-            <td>Available workstations: </td>
-            <td>Available workstations: </td>
-            <td>Available workstations: </td>
-            <td>Available workstations: </td>
+          {
+            days.map(function(day){
+              return (
+                <td>
+                Available workstations: <br />
+                
+                {day.toString()}
+                <br />
+                {
+                  <button>Schedule</button>
+                }
+              </td>
+              );
+            })
+          }
           </tr>
         </table>
-      </div>
-      
-      // <ul>{ 
-      //   this.state.workstations.map(function(workstation){
-      //     return <li>{workstation.location} - {workstation.days}</li>;
-      //   })
-      // }</ul>     
+        {this.scheduleOfDay(this.state.day)}
+      </div>   
     );
+  }
+
+  scheduleOfDay(day: number){
+    if(day >= 0){
+      return(
+        <div>
+          <h1> {Scheduler.daysName[day]} </h1>
+          <table>
+            <tr>
+              {
+                //For header row
+                this.state.workstations.map(function(workstation){
+                  return (
+                    <th> Workstation {workstation.id} in room {workstation.location}</th>
+                  );
+                })
+              }    
+            </tr>
+          </table>   
+        </div>       
+      );
+    }
+    return;
   }
 }
