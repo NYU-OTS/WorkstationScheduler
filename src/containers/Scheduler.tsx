@@ -5,8 +5,12 @@ import { Workstation } from "./../components/Workstation";
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
-export function mapStateToProps({}: SchedulerState) {
-  return {}
+export function mapStateToProps({workstations, day, userName}: SchedulerState) {
+  return {
+    workstations,
+    day,
+    userName
+  }
 }
 
 export function mapDispatchToProps(dispatch: Dispatch<actions.SchedulerAction>) {

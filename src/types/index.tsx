@@ -1,5 +1,4 @@
 import { Workstation } from "./../components/Workstation"
-import { Scheduler } from "./../components/Scheduler"
 
 export interface StoreState {
   languageName: string;
@@ -10,12 +9,11 @@ export interface StoreState {
 
 export interface NameFormState {
   value: string;
-  parent: Scheduler;
+  parent: any;
 }
 
 export interface SchedulerState {
   workstations: Workstation[];
   day: number;
   userName: string;
-  slotTime: string[];
 }

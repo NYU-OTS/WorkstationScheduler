@@ -1,17 +1,33 @@
 import * as React from "react";
 import { render } from "react-dom";
 import { createStore } from 'redux';
-import { schedulerReducer } from './reducers/index';
-import { SchedulerState } from './types/index';
+import { schedulerReducer, nameFormReducer } from './reducers/index';
+import { SchedulerState, NameFormState } from './types/index';
 import { Provider } from 'react-redux';
-import { SchedulerAction } from './actions/index';
+import { SchedulerAction, NameFormAction } from './actions/index';
 import Scheduler from './containers/Scheduler';
+import NameForm from './containers/NameForm';
+import { Workstation } from "./components/Workstation";
 
-const store = createStore<SchedulerState, SchedulerAction, any, any>(schedulerReducer, {});
+let initialSchedulerState = { workstations: [new Workstation(0, "722"), 
+new Workstation(1, "723"), new Workstation(2, "724")], day: -1, userName: ""};
+const schedulerStore = createStore<SchedulerState, SchedulerAction, any, any>(schedulerReducer, initialSchedulerState);
+console.log(schedulerStore);
+let initialNameFormState = { value: "", parent: schedulerStore }; 
+const nameFormStore = createStore<NameFormState, NameFormAction, any, any>(nameFormReducer, initialNameFormState);
+
+// store.dispatch(changeDay(0));
+// store.dispatch(changeDay(1));
+// store.dispatch(changeDay(2));
 
 render(
-  <Provider store={store}>
+  <div>
+  <Provider store={nameFormStore}>
+    <NameForm />
+  </Provider>
+  <Provider store={schedulerStore}>
     <Scheduler />
-  </Provider>,
+  </Provider>
+  </div>,
   document.getElementById('root') as HTMLElement
 );

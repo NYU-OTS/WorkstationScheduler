@@ -1,15 +1,13 @@
 import * as React from "react";
 import { Workstation } from "./Workstation";
 import { SchedulerState, NameFormState } from "./../types";
+import { changeName } from '../actions/index'
 import './table.css'
 
-// import { createStore } from 'redux';
-// import { nameFormReducer } from './../reducers/index';
-// import { Provider } from 'react-redux';
-// import { NameFormAction } from '../actions/index';
-// import NameFormContainer from '../containers/NameForm';
-
 export interface SchedulerProps {
+  workstations: Workstation[];
+  day: number;
+  userName: string;
   onChangeDay: (day: number) => void;
   onUpdateWorkstations: (workstations: Workstation[]) => void;
   onChangeName: (name: string) => void;
@@ -17,25 +15,38 @@ export interface SchedulerProps {
 
 export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   static readonly daysName = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  static readonly slotTime = [
+    "8:00 - 8:30", 
+    "8:30 - 9:00",
+    "9:00 - 9:30",
+    "9:30 - 10:00",
+    "10:00 - 10:30", 
+    "10:30 - 11:00", 
+    "11:00 - 11:30", 
+    "11:30 - 12:00", 
+    "12:00 - 12:30", 
+    "12:30 - 13:00", 
+    "13:00 - 13:30", 
+    "13:30 - 14:00", 
+    "14:00 - 14:30", 
+    "14:30 - 15:00", 
+    "15:00 - 15:30", 
+    "15:30 - 16:00", 
+    "16:00 - 16:30", 
+    "16:30 - 17:00", 
+    "17:00 - 17:30", 
+    "17:30 - 18:00", 
+  ];
 
   constructor(props: SchedulerProps){
     super(props);
-    let slotTime = [];
-    for(let i = 0; i < 20; ++i){
-      let time: string = "";
-      time = String(8 + (i % 2 == 0 ? i/2 : i/2 - 1/2)) + ":" + (i % 2 != 0 ? 30 : "00") + " - ";
-      time += String(8 + ((i+1) % 2 == 0 ? (i + 1)/2 : (i + 1)/2 - 1/2)) + ":" + (i % 2 == 0 ? 30 : "00");
-      slotTime.push(time);
-    }
-    this.state = { workstations: [new Workstation(0, "722"), 
-    new Workstation(1, "723"), new Workstation(2, "724")], day: -1, userName: "", slotTime: slotTime};
   }
 
   public render(){
 
     let days: number[][] = [[], [], [], [], []];
 
-    this.state.workstations.forEach(function(workstation){
+    this.props.workstations.forEach(function(workstation){
       workstation.recalculateAvailability();
       for(let i: number = 0; i < days.length; ++i){
         if(workstation.availability[i]){
@@ -43,21 +54,12 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
         }
       } 
     })
-
-    // const store = createStore<NameFormState, NameFormAction, any, any>(nameFormReducer, {
-    //   value: "Yiyang", 
-    //   parent: this
-    //   }
-    // );
-    
+   
     let counter: number = 0;
 
     return(
       <div>
-        {this.greeting(this.state.userName)}
-        {/* <Provider store={store}>
-          <NameFormContainer />
-        </Provider> */}
+        {this.greeting(this.props.userName)}
         <h1> Workstation Scheduler </h1>
         <table>
           <tr>
@@ -84,14 +86,14 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
           }
           </tr>
         </table>
-        {this.scheduleOfDay(this.state.day)}
+        {this.scheduleOfDay(this.props.day)}
       </div>   
     );
   }
 
   greeting(userName: string){
     if(userName != ""){
-      return( <h1>Hello, {this.state.userName} </h1>);
+      return( <h1>Hello, {this.props.userName} </h1>);
     }
     return
   }
@@ -101,15 +103,15 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
       //Read Schedules of workstations on the specified day
       let schedule: [string, [string, number][], number][] = []
       for(let i = 0; i < 20; ++i){
-        schedule.push([this.state.slotTime[i], [], i]);
+        schedule.push([Scheduler.slotTime[i], [], i]);
       }
-      for(let i = 0; i < this.state.workstations.length; ++i){
-        let slots = this.state.workstations[i].listSlots(day);
+      for(let i = 0; i < this.props.workstations.length; ++i){
+        let slots = this.props.workstations[i].listSlots(day);
         for(let j = 0; j < 20; ++j){
           schedule[j][1].push([slots[j], i]);
         }
       }
-      this.state.workstations.forEach((workstation) => {
+      this.props.workstations.forEach((workstation) => {
         
       })
 
@@ -121,7 +123,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
               <th> Time </th>
               {
                 //For header row
-                this.state.workstations.map(function(workstation){
+                this.props.workstations.map(function(workstation){
                   return (
                     <th> Workstation {workstation.id} in room {workstation.location}</th>
                   );
@@ -139,7 +141,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
                           <th>
                             {slot[0]} <br />
                             {
-                              this.getSlotButton(this.state.userName, slot[0], day, time[2], slot[1])
+                              this.getSlotButton(this.props.userName, slot[0], day, time[2], slot[1])
                             }
                           </th>
                         );
@@ -159,18 +161,18 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   handleScheduleClick(day: number){
     //this.setState({day: day});
     this.props.onChangeDay(day);
-    console.log(this.state);
   }
 
   handleRegisterClick(userName: string, day: number, slot: number, workstation: number){
-    let newWorkstations = this.state.workstations;
+    let newWorkstations = [...this.props.workstations];
     newWorkstations[workstation].slots[day][slot] = userName;
+    console.log(this.props.workstations[workstation].slots[day][slot], newWorkstations[workstation].slots[day][slot])
     //this.setState({workstations: newWorkstations});
     this.props.onUpdateWorkstations(newWorkstations);
   }
 
   handleRemoveClick(day: number, slot: number, workstation: number){
-    let newWorkstations = this.state.workstations;
+    let newWorkstations = [...this.props.workstations];
     newWorkstations[workstation].slots[day][slot] = "empty";
     //this.setState({workstations: newWorkstations});
     this.props.onUpdateWorkstations(newWorkstations);
@@ -198,7 +200,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
 
 interface NameFormProps {
   value: string;
-  parent: Scheduler;
+  parent: any;
   onUpdateField: (value: string) => void;
 } 
 
@@ -216,24 +218,29 @@ export class NameForm extends React.Component<NameFormProps, NameFormState> {
   }
 
   handleSubmit(event: any) {
-    this.state.parent.handleNameChange(this.state.value);
+    //this.props.parent.handleNameChange(this.props.value);
+    this.props.parent.dispatch(changeName(this.props.value));
     event.preventDefault();
   }
 
-  handleLogOut() {
-    this.props.parent.handleNameChange("");
+  handleLogOut(event: any) {
+    //this.props.parent.handleNameChange("");
+    this.props.parent.dispatch(changeName(""));
+    event.preventDefault();
   }
 
   render() {
     return (
-      <form onSubmit={this.handleSubmit}>
-        <label>
-          Log in: 
-          <input type="text" value={this.state.value} onChange={this.handleChange} />
-        </label>
-        <input type="submit" value="Submit" />
-        <button onClick={this.handleLogOut}>Log out</button>
-      </form>
+      <div>
+        <form onSubmit={this.handleSubmit}>
+          <label>
+            Log in: 
+            <input type="text" value={this.props.value} onChange={this.handleChange} />
+          </label>
+          <input type="submit" value="Submit" />
+          <button onClick={this.handleLogOut}>Log out</button>
+        </form>
+      </div>
     );
   }
 }

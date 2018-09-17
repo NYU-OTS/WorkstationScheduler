@@ -20,10 +20,10 @@ import { CHANGE_DAY, UPDATE_WORKSTATIONS, UPDATE_FIELD_VALUE, CHANGE_NAME} from 
 export function schedulerReducer(state: SchedulerState, action: SchedulerAction): SchedulerState {
   switch (action.type) {
     case CHANGE_DAY:
-      console.log("state in reducer: ", state);
-      console.log("action in reducer: ", action);
       return { ...state, day: action.newDay };
     case UPDATE_WORKSTATIONS:
+      console.log(state);
+      console.log(action);
       return { ...state, workstations: action.newWorkstations };
     case CHANGE_NAME:
       return { ...state, userName: action.newName };
