@@ -1,26 +1,19 @@
 import * as React from "react";
 import { Workstation } from "./Workstation";
+import { SchedulerState, NameFormState } from "./../types";
 import './table.css'
 
+// import { createStore } from 'redux';
+// import { nameFormReducer } from './../reducers/index';
+// import { Provider } from 'react-redux';
+// import { NameFormAction } from '../actions/index';
+// import NameFormContainer from '../containers/NameForm';
+
 export interface SchedulerProps {
-  name: string;
-  // onAdd?: () => void;
-  // onDelete?: () => void;
-  // onEdit?: () => void;
+  onChangeDay: (day: number) => void;
+  onUpdateWorkstations: (workstations: Workstation[]) => void;
+  onChangeName: (name: string) => void;
 } 
-
-interface SchedulerState {
-  name: string
-  workstations: Workstation[];
-  day: number
-  userName: string
-  slotTime: string[]
-}
-
-// interface WorkstationJson{
-//   position: string
-//   days: [string, string][][]
-// }
 
 export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   static readonly daysName = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -34,11 +27,12 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
       time += String(8 + ((i+1) % 2 == 0 ? (i + 1)/2 : (i + 1)/2 - 1/2)) + ":" + (i % 2 == 0 ? 30 : "00");
       slotTime.push(time);
     }
-    this.state = { name: props.name, workstations: [new Workstation(0, "722"), 
+    this.state = { workstations: [new Workstation(0, "722"), 
     new Workstation(1, "723"), new Workstation(2, "724")], day: -1, userName: "", slotTime: slotTime};
   }
 
   public render(){
+
     let days: number[][] = [[], [], [], [], []];
 
     this.state.workstations.forEach(function(workstation){
@@ -50,13 +44,21 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
       } 
     })
 
+    // const store = createStore<NameFormState, NameFormAction, any, any>(nameFormReducer, {
+    //   value: "Yiyang", 
+    //   parent: this
+    //   }
+    // );
+    
     let counter: number = 0;
 
     return(
       <div>
         {this.greeting(this.state.userName)}
-        <NameForm parent={this}/>
-        <h1> {this.state.name} </h1>
+        {/* <Provider store={store}>
+          <NameFormContainer />
+        </Provider> */}
+        <h1> Workstation Scheduler </h1>
         <table>
           <tr>
             <th>Monday</th>
@@ -155,19 +157,28 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   }
 
   handleScheduleClick(day: number){
-    this.setState({day: day});
+    //this.setState({day: day});
+    this.props.onChangeDay(day);
+    console.log(this.state);
   }
 
   handleRegisterClick(userName: string, day: number, slot: number, workstation: number){
     let newWorkstations = this.state.workstations;
     newWorkstations[workstation].slots[day][slot] = userName;
-    this.setState({workstations: newWorkstations});
+    //this.setState({workstations: newWorkstations});
+    this.props.onUpdateWorkstations(newWorkstations);
   }
 
   handleRemoveClick(day: number, slot: number, workstation: number){
     let newWorkstations = this.state.workstations;
     newWorkstations[workstation].slots[day][slot] = "empty";
-    this.setState({workstations: newWorkstations});
+    //this.setState({workstations: newWorkstations});
+    this.props.onUpdateWorkstations(newWorkstations);
+  }
+
+  handleNameChange(userName: string){
+    //this.setState({userName: userName});
+    this.props.onChangeName(userName);
   }
 
   getSlotButton(userName: string, registeredName: string, day: number, timeSlot: number, workstation: number){
@@ -186,17 +197,14 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
 }
 
 interface NameFormProps {
+  value: string;
   parent: Scheduler;
+  onUpdateField: (value: string) => void;
 } 
 
-interface NameFormState {
-  value: string
-}
-
-class NameForm extends React.Component<NameFormProps, NameFormState> {
+export class NameForm extends React.Component<NameFormProps, NameFormState> {
   constructor(props: NameFormProps) {
     super(props);
-    this.state = {value: ''};
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -204,16 +212,16 @@ class NameForm extends React.Component<NameFormProps, NameFormState> {
   }
 
   handleChange(event: any) {
-    this.setState({value: event.target.value});
+    this.props.onUpdateField(event.target.value);
   }
 
   handleSubmit(event: any) {
-    this.props.parent.setState({userName: this.state.value});
+    this.state.parent.handleNameChange(this.state.value);
     event.preventDefault();
   }
 
   handleLogOut() {
-    this.props.parent.setState({userName: ""});
+    this.props.parent.handleNameChange("");
   }
 
   render() {

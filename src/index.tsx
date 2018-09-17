@@ -1,29 +1,17 @@
 import * as React from "react";
 import { render } from "react-dom";
-//import Hello from "./components/Hello";
-// import { createStore } from 'redux';
-// import { enthusiasm } from './reducers/index';
-// import { StoreState } from './types/index';
-// import Hello from './containers/Hello';
-// import { Provider } from 'react-redux';
-// import { EnthusiasmAction } from './actions/index';
+import { createStore } from 'redux';
+import { schedulerReducer } from './reducers/index';
+import { SchedulerState } from './types/index';
+import { Provider } from 'react-redux';
+import { SchedulerAction } from './actions/index';
+import Scheduler from './containers/Scheduler';
 
-import { Scheduler } from './components/Scheduler'
-
-// const store = createStore<StoreState, EnthusiasmAction, any, any>(enthusiasm, {
-//   enthusiasmLevel: 1,
-//   languageName: 'TypeScript'
-//   }
-// );
-
-// render(
-//   <Provider store={store}>
-//     <Hello />
-//   </Provider>,
-//   document.getElementById('root') as HTMLElement
-// );
+const store = createStore<SchedulerState, SchedulerAction, any, any>(schedulerReducer, {});
 
 render(
-  <Scheduler name="Workstation Schedule"/>, 
+  <Provider store={store}>
+    <Scheduler />
+  </Provider>,
   document.getElementById('root') as HTMLElement
-)
+);

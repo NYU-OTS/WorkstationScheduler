@@ -31,12 +31,12 @@ export class Workstation {
   }
 
   public listSlots(day: number){
-    let slots: string[] = []
+    // let slots: string[] = []
 
-    for(let i: number = 0; i < this.slots[day].length; ++i){
-      slots.push(this.slots[day][i]);
-    } 
+    // for(let i: number = 0; i < this.slots[day].length; ++i){
+    //   slots.push(this.slots[day][i]);
+    // } 
 
-    return slots
+    return this.slots[day];
   }
 }
