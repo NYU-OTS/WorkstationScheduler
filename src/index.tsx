@@ -16,10 +16,6 @@ console.log(schedulerStore);
 let initialNameFormState = { value: "", parent: schedulerStore }; 
 const nameFormStore = createStore<NameFormState, NameFormAction, any, any>(nameFormReducer, initialNameFormState);
 
-// store.dispatch(changeDay(0));
-// store.dispatch(changeDay(1));
-// store.dispatch(changeDay(2));
-
 render(
   <div>
   <Provider store={nameFormStore}>
