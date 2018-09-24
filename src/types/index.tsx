@@ -1,4 +1,4 @@
-import { Workstation } from "./../components/Workstation"
+import { Workstation, User } from "./../components/Workstation"
 
 export interface NameFormState {
   value: string;
@@ -8,5 +8,6 @@ export interface NameFormState {
 export interface SchedulerState {
   workstations: Workstation[];
   day: number;
-  userName: string;
+  currentUser: User;
+  users: User[];
 }

@@ -7,12 +7,15 @@ import { Provider } from 'react-redux';
 import { SchedulerAction, NameFormAction } from './actions/index';
 import Scheduler from './containers/Scheduler';
 import NameForm from './containers/NameForm';
-import { Workstation } from "./components/Workstation";
+import { Workstation, User } from "./components/Workstation";
 
-let initialSchedulerState = { workstations: [new Workstation(0, "722"), 
-new Workstation(1, "723"), new Workstation(2, "724")], day: -1, userName: ""};
+let initialSchedulerState = {
+  workstations: [new Workstation(0, "722"), new Workstation(1, "723"), new Workstation(2, "724")], 
+  day: -1, 
+  currentUser: new User(""), 
+  users: []
+};
 const schedulerStore = createStore<SchedulerState, SchedulerAction, any, any>(schedulerReducer, initialSchedulerState);
-console.log(schedulerStore);
 let initialNameFormState = { value: "", parent: schedulerStore }; 
 const nameFormStore = createStore<NameFormState, NameFormAction, any, any>(nameFormReducer, initialNameFormState);
 

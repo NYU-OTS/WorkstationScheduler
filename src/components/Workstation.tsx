@@ -1,10 +1,12 @@
 export class TimeSlot {
-  user: string
+  user: User
   startTime: [number, number]
   endTime: [number, number]
 
-  constructor(user: string, startTime: [number, number], endTime: [number, number]){
-    this.user = user;
+  constructor(startTime: [number, number], endTime: [number, number], user?: User){
+    if(user != undefined){
+      this.user = user;
+    }   
     this.startTime = [startTime[0], startTime[1]];
     this.endTime = [endTime[0], endTime[1]];
   }
@@ -18,7 +20,7 @@ export class TimeSlot {
       if(lhs[1] > rhs[1]){
         return 1;
       }
-      if(lhs[1] < rhs[1]){
+      else{
         return -1;
       }
     }
@@ -26,7 +28,7 @@ export class TimeSlot {
       if(lhs[0] > rhs[0]){
         return 1;
       }
-      if(lhs[0] < rhs[0]){
+      else{
         return -1;
       }
     }
@@ -65,8 +67,8 @@ export class TimeSlot {
 }
 
 export class Workstation {
-  static readonly leftBound = new TimeSlot("", [0, 0], [8, 0]);
-  static readonly rightBound = new TimeSlot("", [18, 0], [0, 0]);
+  static readonly leftBound = new TimeSlot([0, 0], [8, 0]);
+  static readonly rightBound = new TimeSlot([18, 0], [0, 0]);
   id: number
   location: string
   slots: TimeSlot[][]
@@ -83,9 +85,10 @@ export class Workstation {
   //Error code 0 means unknown successful
   //Error code 1 means unknown error
   //Error code 2 means the input slot is intersecting with an existing slot 
-  public addSlot(user: string, startTime: [number, number], endTime: [number, number], day: number){
+  //Error code 3 means the user has already registered a slot intersecting with the input slot
+  public addSlot(user: User, startTime: [number, number], endTime: [number, number], day: number){
     let slots = this.slots[day];
-    let newSlot = new TimeSlot(user, startTime, endTime);
+    let newSlot = new TimeSlot(startTime, endTime, user);
     for(let i: number = 0; i < this.slots.length; ++i){
       //If the input slot is intersecting with an existing slot, return an error
       if(newSlot.ifIntersect(slots[i])){
@@ -94,9 +97,15 @@ export class Workstation {
 
       //If the input slot is before the slot at index i, insert the input slot
       if(TimeSlot.compare(endTime, slots[i].startTime)){
-        slots.splice(i, 0, newSlot);
-        this.recalculateAvailability(day);
-        return 0;
+        if(user.ifDuplicate(newSlot, day)){
+          return 3; 
+        }
+        else{
+          user.addTimeSlot(newSlot, day);
+          slots.splice(i, 0, newSlot);
+          this.recalculateAvailability(day);
+          return 0;
+        }               
       }
     }
     return 1;
@@ -108,7 +117,7 @@ export class Workstation {
   }
 
   public recalculateAvailability(day?: number){
-    if(day){
+    if(day != undefined){
       let availableToday: boolean = false;
         let lastSlot: TimeSlot = Workstation.leftBound;
         for(let j: number = 0; j <= this.slots[day].length; ++j){
@@ -155,10 +164,16 @@ export class User{
   }
 
   public addTimeSlot(slot: TimeSlot, day: number){
-    
+    this.slots[day].push(slot);
   }
 
-  public checkDuplicate(slot: TimeSlot){
-
+  public ifDuplicate(slot: TimeSlot, day: number){
+    let slots = this.slots[day];
+    for(let i: number = 0; i < slots.length; ++i){
+      if(slot.ifIntersect(slots[i])){
+        return true;
+      }
+    }
+    return false;
   }
 }
