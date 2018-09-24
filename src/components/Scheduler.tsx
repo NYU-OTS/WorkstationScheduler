@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Workstation } from "./Workstation";
+import { Workstation, TimeSlot } from "./Workstation";
 import { SchedulerState, NameFormState } from "./../types";
 import { changeName } from '../actions/index'
 import './table.css'
@@ -16,26 +16,26 @@ export interface SchedulerProps {
 export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   static readonly daysName = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   static readonly slotTime = [
-    "8:00 - 8:30", 
-    "8:30 - 9:00",
-    "9:00 - 9:30",
-    "9:30 - 10:00",
-    "10:00 - 10:30", 
-    "10:30 - 11:00", 
-    "11:00 - 11:30", 
-    "11:30 - 12:00", 
-    "12:00 - 12:30", 
-    "12:30 - 13:00", 
-    "13:00 - 13:30", 
-    "13:30 - 14:00", 
-    "14:00 - 14:30", 
-    "14:30 - 15:00", 
-    "15:00 - 15:30", 
-    "15:30 - 16:00", 
-    "16:00 - 16:30", 
-    "16:30 - 17:00", 
-    "17:00 - 17:30", 
-    "17:30 - 18:00", 
+    new TimeSlot("", [8, 0], [8, 30]), 
+    new TimeSlot("", [8, 30], [9, 0]),
+    new TimeSlot("", [9, 0], [9, 30]), 
+    new TimeSlot("", [9, 30], [10, 0]),
+    new TimeSlot("", [10, 0], [10, 30]), 
+    new TimeSlot("", [10, 30], [11, 0]),
+    new TimeSlot("", [11, 0], [11, 30]), 
+    new TimeSlot("", [11, 30], [12, 0]),
+    new TimeSlot("", [12, 0], [12, 30]), 
+    new TimeSlot("", [12, 30], [13, 0]),
+    new TimeSlot("", [13, 0], [13, 30]), 
+    new TimeSlot("", [13, 30], [14, 0]),
+    new TimeSlot("", [14, 0], [14, 30]), 
+    new TimeSlot("", [14, 30], [15, 0]),
+    new TimeSlot("", [15, 0], [15, 30]), 
+    new TimeSlot("", [15, 30], [16, 0]),
+    new TimeSlot("", [16, 0], [16, 30]), 
+    new TimeSlot("", [16, 30], [17, 0]),
+    new TimeSlot("", [17, 0], [17, 30]), 
+    new TimeSlot("", [17, 30], [18, 0])
   ];
 
   constructor(props: SchedulerProps){
@@ -47,7 +47,6 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
     let days: number[][] = [[], [], [], [], []];
 
     this.props.workstations.forEach(function(workstation){
-      workstation.recalculateAvailability();
       for(let i: number = 0; i < days.length; ++i){
         if(workstation.availability[i]){
           days[i].push(workstation.id);
@@ -101,14 +100,19 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   scheduleOfDay(day: number){
     if(day >= 0){
       //Read Schedules of workstations on the specified day
-      let schedule: [string, [string, number][], number][] = []
+      let schedule: [string, [string[], number][], number][] = []
       for(let i = 0; i < 20; ++i){
-        schedule.push([Scheduler.slotTime[i], [], i]);
+        schedule.push([Scheduler.slotTime[i].toStringTimeOnly(), [], i]);
       }
+      //Every workstation
       for(let i = 0; i < this.props.workstations.length; ++i){
-        let slots = this.props.workstations[i].listSlots(day);
-        for(let j = 0; j < 20; ++j){
-          schedule[j][1].push([slots[j], i]);
+        //Every recorded timeslot
+        let slots = this.props.workstations[i].slots[day];
+        for(let j = 0; j < slots.length; ++j){
+          schedule[j][1].push([[], i]);          
+          for(let k = 0; k < slots.length; ++k){
+            schedule[j][1][0].push();
+          }
         }
       }
       this.props.workstations.forEach((workstation) => {
@@ -141,7 +145,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
                           <th>
                             {slot[0]} <br />
                             {
-                              this.getSlotButton(this.props.userName, slot[0], day, time[2], slot[1])
+                              //this.getSlotButton(this.props.userName, slot[0], day, time[2], slot[1])
                             }
                           </th>
                         );
