@@ -111,7 +111,9 @@ export class Workstation {
     return 1;
   }
 
-  public removeSlot(index: number, day: number){
+  public removeSlot(slot: TimeSlot, day: number){
+    let index = this.slots[day].indexOf(slot);
+    this.slots[day][index].user.removeTimeSlot(slot, day);
     this.slots[day].splice(index, 1);
     this.recalculateAvailability(day);
   }
@@ -165,6 +167,11 @@ export class User{
 
   public addTimeSlot(slot: TimeSlot, day: number){
     this.slots[day].push(slot);
+  }
+
+  public removeTimeSlot(slot: TimeSlot, day: number){
+    let index = this.slots[day].indexOf(slot);
+    this.slots[day].splice(index, 1);
   }
 
   public ifDuplicate(slot: TimeSlot, day: number){

@@ -12,7 +12,6 @@ export interface SchedulerProps {
   onChangeDay: (day: number) => void;
   onUpdateWorkstations: (workstations: Workstation[]) => void;
   onChangeUser: (userName: string) => void;
-  onAddUser: (users: User[]) => void;
 } 
 
 export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{

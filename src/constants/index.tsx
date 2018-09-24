@@ -9,6 +9,3 @@ export type UPDATE_FIELD_VALUE = typeof UPDATE_FIELD_VALUE;
 
 export const CHANGE_USER = 'CHANGE_USER';
 export type CHANGE_USER = typeof CHANGE_USER;
-
-export const ADD_USER = 'ADD_USER';
-export type ADD_USER = typeof ADD_USER;

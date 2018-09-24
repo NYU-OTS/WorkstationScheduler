@@ -1,5 +1,5 @@
 import * as constants from '../constants'
-import { Workstation, User } from "./../components/Workstation"
+import { Workstation } from "./../components/Workstation"
 
 export interface ChangeDay {
     type: constants.CHANGE_DAY;
@@ -21,12 +21,7 @@ export interface ChangeUser {
     newUserName: string;
 }
 
-export interface AddUser {
-    type: constants.ADD_USER;
-    newUsers: User[];
-}
-
-export type SchedulerAction = ChangeDay | UpdateWorkstations | ChangeUser | AddUser;
+export type SchedulerAction = ChangeDay | UpdateWorkstations | ChangeUser;
 export type NameFormAction = UpdateFieldValue;
 
 export function changeDay(day: number): ChangeDay {
@@ -54,12 +49,5 @@ export function changeUser(userName: string): ChangeUser {
     return {
         type: constants.CHANGE_USER,
         newUserName: userName
-    }
-}
-
-export function addUser(users: User[]): AddUser {
-    return {
-        type: constants.ADD_USER,
-        newUsers: users
     }
 }
