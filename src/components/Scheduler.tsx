@@ -47,6 +47,10 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
       return (
         <form onSubmit={handleSubmit}>
           <div>
+            <label htmlFor="startTime">Workstation id:<br/></label>
+            <Field name="workstation" component="input" type="number" min="0" max="2"/>
+          </div>
+          <div>
             <label htmlFor="startTime">Start Time:<br/></label>
             Hour<Field name="startTimeHour" component="input" type="number" min="8" max="17"/>
             Minute<Field name="startTimeMin" component="input" type="number" min="0" max="59"/>
@@ -54,7 +58,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
           <div>
             <label htmlFor="endTime">End Time:<br/></label>
             Hour<Field name="endTimeHour" component="input" type="number" min="9" max="18"/>
-            Minute<Field name="startTimeMin" component="input" type="number" min="0" max="59"/>
+            Minute<Field name="endTimeMin" component="input" type="number" min="0" max="59"/>
           </div>
           <button type="submit">Register</button>
         </form>
@@ -183,9 +187,20 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
                       time[1].map((workstation) => {
                         return(
                           <th>
-                            {workstation[0]} <br />
                             {
-                              //this.getSlotButton(this.props.userName, slot[0], day, time[2], slot[1])
+                              workstation[0].map((timeSlot) => {
+                                return (
+                                  <div>
+                                    {
+                                      timeSlot.toStringFull
+                                    }
+                                    <br />
+                                    {
+                                      this.getSlotButton(this.props.currentUser, timeSlot.user, timeSlot, day, workstation[1])
+                                    }
+                                  </div>
+                                  );
+                              })
                             }
                           </th>
                         );
@@ -196,7 +211,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
               })      
             }
           </table>
-          <this.RegisterForm onSubmit={this.onSubmit} />
+          {this.getRegisterForm(this.props.currentUser)}
         </div>       
       );
     }
@@ -215,12 +230,12 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   //   this.props.onUpdateWorkstations(newWorkstations);
   // }
 
-  // handleRemoveClick(day: number, slot: number, workstation: number){
-  //   let newWorkstations = [...this.props.workstations];
-  //   newWorkstations[workstation].slots[day][slot] = "empty";
-  //   //this.setState({workstations: newWorkstations});
-  //   this.props.onUpdateWorkstations(newWorkstations);
-  // }
+  handleRemoveClick(day: number, slot: TimeSlot, workstation: number){
+    let newWorkstations = [...this.props.workstations];
+    newWorkstations[workstation].removeSlot(slot, day)
+    //this.setState({workstations: newWorkstations});
+    this.props.onUpdateWorkstations(newWorkstations);
+  }
 
   // handleNameChange(userName: string){
   //   //this.setState({userName: userName});
@@ -236,21 +251,32 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   //   this.props.onChangeUser(user);
   // }
 
-  // getSlotButton(userName: string, registeredName: string, day: number, timeSlot: number, workstation: number){
-  //   if(userName == ""){
-  //     return
-  //   }
-  //   if(userName == registeredName){
-  //     return(<button onClick={this.handleRemoveClick.bind(this, day, timeSlot, workstation)}>Remove</button>);
-  //   }
-  //   if(registeredName == "empty"){
-  //     return(<button onClick={this.handleRegisterClick.bind(this, userName, day, timeSlot, workstation)}>Register</button>)
-  //   }
-  //   return
-  // }
+  getSlotButton(currentUser: User, registeredUser: User, timeSlot: TimeSlot, day: number, workstation: number){
+    // if(userName == ""){
+    //   return
+    // }
+    if(currentUser == registeredUser){
+      return(<button onClick={this.handleRemoveClick.bind(this, day, timeSlot, workstation)}>Remove</button>);
+    }
+    // if(registeredName == "empty"){
+    //   return(<button onClick={this.handleRegisterClick.bind(this, userName, day, timeSlot, workstation)}>Register</button>)
+    // }
+    return
+  }
+
+  getRegisterForm(currentUser: User){
+    if(currentUser.name != ""){
+      return <this.RegisterForm onSubmit={this.onSubmit.bind(this)} />;
+    }
+    return;
+  }
 
   onSubmit(values: any) {
-    console.log(values);
+    let newWorkstations = [...this.props.workstations];
+    let error = newWorkstations[values.workstation].addSlot(this.props.currentUser, [values.startTimeHour, values.startTimeMin], 
+      [values.endTimeHour, values.endTimeMin], this.props.day);
+    console.log("Error:", error)
+    this.props.onUpdateWorkstations(newWorkstations);
   }
 }
 

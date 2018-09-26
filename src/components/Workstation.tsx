@@ -41,6 +41,7 @@ export class TimeSlot {
   }
 
   ifIntersect(rhs: TimeSlot){
+    console.log(rhs)
     if(
       TimeSlot.compare(this.startTime, rhs.endTime) == -1 //this.startTime < rhs.endTime
       && TimeSlot.compare(rhs.startTime, this.startTime) == -1 //rhs.startTime < this.startTime
@@ -97,7 +98,16 @@ export class Workstation {
   public addSlot(user: User, startTime: [number, number], endTime: [number, number], day: number){
     let slots = this.slots[day];
     let newSlot = new TimeSlot(startTime, endTime, user);
-    for(let i: number = 0; i < this.slots.length; ++i){
+    
+    //For the first slot added
+    if(slots.length <= 0){
+      user.addTimeSlot(newSlot, day);
+      slots.push(newSlot);
+      this.recalculateAvailability(day);
+      return 0;
+    }
+
+    for(let i: number = 0; i < slots.length; ++i){
       //If the input slot is intersecting with an existing slot, return an error
       if(newSlot.ifIntersect(slots[i])){
         return 2;
@@ -116,6 +126,7 @@ export class Workstation {
         }               
       }
     }
+
     return 1;
   }
 
@@ -185,7 +196,7 @@ export class User{
   public ifDuplicate(slot: TimeSlot, day: number){
     let slots = this.slots[day];
     for(let i: number = 0; i < slots.length; ++i){
-      if(slot.ifIntersect(slots[i])){
+      if(slot != slots[i] && slot.ifIntersect(slots[i])){
         return true;
       }
     }
