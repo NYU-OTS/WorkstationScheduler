@@ -1,16 +1,18 @@
 import { Scheduler } from '../components/Scheduler';
 import * as actions from '../actions/';
-import { SchedulerState } from '../types/index';
+//import { SchedulerState } from '../types/index';
 import { Workstation } from "./../components/Workstation";
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
-export function mapStateToProps({workstations, day, currentUser, users}: SchedulerState) {
+export function mapStateToProps(state: any) {
+
+  let schedulerState = state.schedulerReducer;
   return {
-    workstations,
-    day,
-    currentUser, 
-    users
+    workstations: schedulerState.workstations,
+    day: schedulerState.day,
+    currentUser: schedulerState.currentUser, 
+    users: schedulerState.users
   }
 }
 

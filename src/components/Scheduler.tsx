@@ -1,8 +1,9 @@
 import * as React from "react";
 import { Workstation, TimeSlot, User } from "./Workstation";
 import { SchedulerState, NameFormState } from "./../types";
-import { changeUser } from '../actions/index'
-import './table.css'
+import { changeUser } from '../actions/index';
+import { reduxForm, Field } from 'redux-form';
+import './table.css';
 
 export interface SchedulerProps {
   workstations: Workstation[];
@@ -38,6 +39,27 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
     new TimeSlot([17, 0], [17, 30]), 
     new TimeSlot([17, 30], [18, 0])
   ];
+  RegisterForm = 
+    reduxForm({
+      form: "register"
+    })(props => {
+      const { handleSubmit } = props
+      return (
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="startTime">Start Time:<br/></label>
+            Hour<Field name="startTimeHour" component="input" type="number" min="8" max="17"/>
+            Minute<Field name="startTimeMin" component="input" type="number" min="0" max="59"/>
+          </div>
+          <div>
+            <label htmlFor="endTime">End Time:<br/></label>
+            Hour<Field name="endTimeHour" component="input" type="number" min="9" max="18"/>
+            Minute<Field name="startTimeMin" component="input" type="number" min="0" max="59"/>
+          </div>
+          <button type="submit">Register</button>
+        </form>
+      )
+    });
 
   constructor(props: SchedulerProps){
     super(props);
@@ -87,7 +109,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
           </tr>
         </table>
         {
-          //this.scheduleOfDay(this.props.day)
+          this.scheduleOfDay(this.props.day)
         }
       </div>   
     );
@@ -103,24 +125,39 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   scheduleOfDay(day: number){
     if(day >= 0){
       //Read Schedules of workstations on the specified day
-      let schedule: [string, [string[], number][], number][] = []
+
+      //[slot time, [slots in the slot time, workstation id]]
+      let schedule: [TimeSlot, [TimeSlot[], number][]][] = []
+
+      //Initialize the data structure
       for(let i = 0; i < 20; ++i){
-        schedule.push([Scheduler.slotTime[i].toStringTimeOnly(), [], i]);
+        schedule.push([Scheduler.slotTime[i], []]);
+        for(let j = 0; j < this.props.workstations.length; ++j){
+          schedule[i][1].push([[], j]);
+        }
       }
-      //Every workstation
+
+      //Fill the data structure
       for(let i = 0; i < this.props.workstations.length; ++i){
         //Every recorded timeslot
         let slots = this.props.workstations[i].slots[day];
-        for(let j = 0; j < slots.length; ++j){
-          schedule[j][1].push([[], i]);          
-          for(let k = 0; k < slots.length; ++k){
-            schedule[j][1][0].push();
+        let slotsCounter = 0;
+        for(let k = 0; k < schedule.length; ++k){
+          for(let j = slotsCounter; j < slots.length; ++j){
+            if(schedule[k][0].ifIntersect(slots[j])){
+              schedule[k][1][i][0].push(slots[j]);
+            }
           }
         }
+
+        // for(let j = 0; j < slots.length; ++j){
+          
+        //   schedule[j][1].push([[], i]);          
+        //   for(let k = 0; k < slots.length; ++k){
+        //     schedule[j][1][0].push();
+        //   }
+        // }
       }
-      this.props.workstations.forEach((workstation) => {
-        
-      })
 
       return(
         <div>
@@ -141,12 +178,12 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
               schedule.map((time) => {
                 return(
                   <tr>
-                    <th> {time[0]} </th>
+                    <th> {time[0].toStringTimeOnly()} </th>
                     {
-                      time[1].map((slot) => {
+                      time[1].map((workstation) => {
                         return(
                           <th>
-                            {slot[0]} <br />
+                            {workstation[0]} <br />
                             {
                               //this.getSlotButton(this.props.userName, slot[0], day, time[2], slot[1])
                             }
@@ -158,7 +195,8 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
                 );
               })      
             }
-          </table>   
+          </table>
+          <this.RegisterForm onSubmit={this.onSubmit} />
         </div>       
       );
     }
@@ -210,6 +248,10 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   //   }
   //   return
   // }
+
+  onSubmit(values: any) {
+    console.log(values);
+  }
 }
 
 interface NameFormProps {

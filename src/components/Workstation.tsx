@@ -57,8 +57,16 @@ export class TimeSlot {
   }
 
   toStringTimeOnly(){
-    return String(this.startTime[0]) + ":" + String(this.startTime[1]) + " - " + 
-    String(this.endTime[0]) + ":" + String(this.endTime[1]);
+    let startMin: string = String(this.startTime[1]);
+    let endMin: string = String(this.endTime[1]);
+    if(this.startTime[1] == 0){
+      startMin += "0";
+    }
+    if(this.endTime[1] == 0){
+      endMin += "0";
+    }
+    return String(this.startTime[0]) + ":" + startMin + " - " + 
+    String(this.endTime[0]) + ":" + endMin;
   }
 
   toStringFull(){

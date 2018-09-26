@@ -1,13 +1,14 @@
 import * as React from "react";
 import { render } from "react-dom";
-import { createStore } from 'redux';
+import { createStore, combineReducers } from 'redux';
 import { schedulerReducer, nameFormReducer } from './reducers/index';
-import { SchedulerState, NameFormState } from './types/index';
+import { NameFormState } from './types/index';
 import { Provider } from 'react-redux';
-import { SchedulerAction, NameFormAction } from './actions/index';
+import { NameFormAction } from './actions/index';
 import Scheduler from './containers/Scheduler';
 import NameForm from './containers/NameForm';
 import { Workstation, User } from "./components/Workstation";
+import { reducer as formReducer } from 'redux-form'
 
 let initialSchedulerState = {
   workstations: [new Workstation(0, "722"), new Workstation(1, "723"), new Workstation(2, "724")], 
@@ -15,7 +16,13 @@ let initialSchedulerState = {
   currentUser: new User(""), 
   users: []
 };
-const schedulerStore = createStore<SchedulerState, SchedulerAction, any, any>(schedulerReducer, initialSchedulerState);
+
+const rootReducer = combineReducers({
+  schedulerReducer, 
+  form: formReducer
+})
+
+const schedulerStore = createStore(rootReducer, {schedulerReducer: initialSchedulerState});
 let initialNameFormState = { value: "", parent: schedulerStore }; 
 const nameFormStore = createStore<NameFormState, NameFormAction, any, any>(nameFormReducer, initialNameFormState);
 

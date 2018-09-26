@@ -1,9 +1,17 @@
 import { SchedulerAction, NameFormAction } from '../actions';
 import { SchedulerState, NameFormState } from '../types/index';
 import { CHANGE_DAY, UPDATE_WORKSTATIONS, UPDATE_FIELD_VALUE, CHANGE_USER } from '../constants/index';
-import { User } from "../components/Workstation";
+import { User, Workstation } from "../components/Workstation";
 
-export function schedulerReducer(state: SchedulerState, action: SchedulerAction): SchedulerState {
+let initialSchedulerState = {
+  workstations: [new Workstation(0, "722"), new Workstation(1, "723"), new Workstation(2, "724")], 
+  day: -1, 
+  currentUser: new User(""), 
+  users: []
+};
+
+export function schedulerReducer(state: SchedulerState = initialSchedulerState, action: SchedulerAction): SchedulerState {
+
   switch (action.type) {
     case CHANGE_DAY:
       return { ...state, day: action.newDay };
