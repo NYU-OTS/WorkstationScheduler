@@ -1,42 +1,69 @@
 import * as React from "react";
-import { Workstation } from "./Workstation";
+import { Workstation, TimeSlot, User } from "./Workstation";
 import { SchedulerState, NameFormState } from "./../types";
-import { changeName } from '../actions/index'
-import './table.css'
+import { changeUser } from '../actions/index';
+import { reduxForm, Field } from 'redux-form';
+import './table.css';
 
 export interface SchedulerProps {
   workstations: Workstation[];
   day: number;
-  userName: string;
+  currentUser: User;
+  users: User[];
   onChangeDay: (day: number) => void;
   onUpdateWorkstations: (workstations: Workstation[]) => void;
-  onChangeName: (name: string) => void;
+  onChangeUser: (userName: string) => void;
 } 
 
 export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   static readonly daysName = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   static readonly slotTime = [
-    "8:00 - 8:30", 
-    "8:30 - 9:00",
-    "9:00 - 9:30",
-    "9:30 - 10:00",
-    "10:00 - 10:30", 
-    "10:30 - 11:00", 
-    "11:00 - 11:30", 
-    "11:30 - 12:00", 
-    "12:00 - 12:30", 
-    "12:30 - 13:00", 
-    "13:00 - 13:30", 
-    "13:30 - 14:00", 
-    "14:00 - 14:30", 
-    "14:30 - 15:00", 
-    "15:00 - 15:30", 
-    "15:30 - 16:00", 
-    "16:00 - 16:30", 
-    "16:30 - 17:00", 
-    "17:00 - 17:30", 
-    "17:30 - 18:00", 
+    new TimeSlot([8, 0], [8, 30]), 
+    new TimeSlot([8, 30], [9, 0]),
+    new TimeSlot([9, 0], [9, 30]), 
+    new TimeSlot([9, 30], [10, 0]),
+    new TimeSlot([10, 0], [10, 30]), 
+    new TimeSlot([10, 30], [11, 0]), 
+    new TimeSlot([11, 0], [11, 30]), 
+    new TimeSlot([11, 30], [12, 0]),
+    new TimeSlot([12, 0], [12, 30]), 
+    new TimeSlot([12, 30], [13, 0]),
+    new TimeSlot([13, 0], [13, 30]), 
+    new TimeSlot([13, 30], [14, 0]),
+    new TimeSlot([14, 0], [14, 30]), 
+    new TimeSlot([14, 30], [15, 0]),
+    new TimeSlot([15, 0], [15, 30]), 
+    new TimeSlot([15, 30], [16, 0]),
+    new TimeSlot([16, 0], [16, 30]), 
+    new TimeSlot([16, 30], [17, 0]),
+    new TimeSlot([17, 0], [17, 30]), 
+    new TimeSlot([17, 30], [18, 0])
   ];
+  RegisterForm = 
+    reduxForm({
+      form: "register"
+    })(props => {
+      const { handleSubmit } = props
+      return (
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="startTime">Workstation id:<br/></label>
+            <Field name="workstation" component="input" type="number" min="0" max="2"/>
+          </div>
+          <div>
+            <label htmlFor="startTime">Start Time:<br/></label>
+            Hour<Field name="startTimeHour" component="input" type="number" min="8" max="17"/>
+            Minute<Field name="startTimeMin" component="input" type="number" min="0" max="59"/>
+          </div>
+          <div>
+            <label htmlFor="endTime">End Time:<br/></label>
+            Hour<Field name="endTimeHour" component="input" type="number" min="9" max="18"/>
+            Minute<Field name="endTimeMin" component="input" type="number" min="0" max="59"/>
+          </div>
+          <button type="submit">Register</button>
+        </form>
+      )
+    });
 
   constructor(props: SchedulerProps){
     super(props);
@@ -47,7 +74,6 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
     let days: number[][] = [[], [], [], [], []];
 
     this.props.workstations.forEach(function(workstation){
-      workstation.recalculateAvailability();
       for(let i: number = 0; i < days.length; ++i){
         if(workstation.availability[i]){
           days[i].push(workstation.id);
@@ -59,7 +85,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
 
     return(
       <div>
-        {this.greeting(this.props.userName)}
+        {this.greeting(this.props.currentUser)}
         <h1> Workstation Scheduler </h1>
         <table>
           <tr>
@@ -86,14 +112,16 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
           }
           </tr>
         </table>
-        {this.scheduleOfDay(this.props.day)}
+        {
+          this.scheduleOfDay(this.props.day)
+        }
       </div>   
     );
   }
 
-  greeting(userName: string){
-    if(userName != ""){
-      return( <h1>Hello, {this.props.userName} </h1>);
+  greeting(user: User){
+    if(user.name != ""){
+      return( <h1>Hello, {user.name} </h1>);
     }
     return
   }
@@ -101,19 +129,31 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   scheduleOfDay(day: number){
     if(day >= 0){
       //Read Schedules of workstations on the specified day
-      let schedule: [string, [string, number][], number][] = []
+
+      //[slot time, [slots in the slot time, workstation id]]
+      let schedule: [TimeSlot, [TimeSlot[], number][]][] = []
+
+      //Initialize the data structure
       for(let i = 0; i < 20; ++i){
-        schedule.push([Scheduler.slotTime[i], [], i]);
-      }
-      for(let i = 0; i < this.props.workstations.length; ++i){
-        let slots = this.props.workstations[i].listSlots(day);
-        for(let j = 0; j < 20; ++j){
-          schedule[j][1].push([slots[j], i]);
+        schedule.push([Scheduler.slotTime[i], []]);
+        for(let j = 0; j < this.props.workstations.length; ++j){
+          schedule[i][1].push([[], j]);
         }
       }
-      this.props.workstations.forEach((workstation) => {
-        
-      })
+
+      //Fill the data structure
+      for(let i = 0; i < this.props.workstations.length; ++i){
+        //Every recorded timeslot
+        let slots = this.props.workstations[i].slots[day];
+        let slotsCounter = 0;
+        for(let k = 0; k < schedule.length; ++k){
+          for(let j = slotsCounter; j < slots.length; ++j){
+            if(schedule[k][0].ifIntersect(slots[j])){
+              schedule[k][1][i][0].push(slots[j]);
+            }
+          }
+        }
+      }
 
       return(
         <div>
@@ -134,14 +174,25 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
               schedule.map((time) => {
                 return(
                   <tr>
-                    <th> {time[0]} </th>
+                    <th> {time[0].toStringTimeOnly()} </th>
                     {
-                      time[1].map((slot) => {
+                      time[1].map((workstation) => {
                         return(
                           <th>
-                            {slot[0]} <br />
                             {
-                              this.getSlotButton(this.props.userName, slot[0], day, time[2], slot[1])
+                              workstation[0].map((timeSlot) => {
+                                return (
+                                  <div>
+                                    {
+                                      timeSlot.toStringFull()
+                                    }
+                                    <br />
+                                    {
+                                      this.getSlotButton(this.props.currentUser, timeSlot.user, timeSlot, day, workstation[1])
+                                    }
+                                  </div>
+                                  );
+                              })
                             }
                           </th>
                         );
@@ -151,7 +202,8 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
                 );
               })      
             }
-          </table>   
+          </table>
+          {this.getRegisterForm(this.props.currentUser)}
         </div>       
       );
     }
@@ -159,42 +211,62 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   }
 
   handleScheduleClick(day: number){
-    //this.setState({day: day});
     this.props.onChangeDay(day);
   }
 
-  handleRegisterClick(userName: string, day: number, slot: number, workstation: number){
+  handleRemoveClick(day: number, slot: TimeSlot, workstation: number){
     let newWorkstations = [...this.props.workstations];
-    newWorkstations[workstation].slots[day][slot] = userName;
-    console.log(this.props.workstations[workstation].slots[day][slot], newWorkstations[workstation].slots[day][slot])
-    //this.setState({workstations: newWorkstations});
+    newWorkstations[workstation].removeSlot(slot, day)
     this.props.onUpdateWorkstations(newWorkstations);
   }
 
-  handleRemoveClick(day: number, slot: number, workstation: number){
-    let newWorkstations = [...this.props.workstations];
-    newWorkstations[workstation].slots[day][slot] = "empty";
-    //this.setState({workstations: newWorkstations});
-    this.props.onUpdateWorkstations(newWorkstations);
-  }
-
-  handleNameChange(userName: string){
-    //this.setState({userName: userName});
-    this.props.onChangeName(userName);
-  }
-
-  getSlotButton(userName: string, registeredName: string, day: number, timeSlot: number, workstation: number){
-    if(userName == ""){
-      return
-    }
-    if(userName == registeredName){
+  getSlotButton(currentUser: User, registeredUser: User, timeSlot: TimeSlot, day: number, workstation: number){
+    if(currentUser == registeredUser){
       return(<button onClick={this.handleRemoveClick.bind(this, day, timeSlot, workstation)}>Remove</button>);
     }
-    if(registeredName == "empty"){
-      return(<button onClick={this.handleRegisterClick.bind(this, userName, day, timeSlot, workstation)}>Register</button>)
-    }
-    
     return
+  }
+
+  getRegisterForm(currentUser: User){
+    if(currentUser.name != ""){
+      return <this.RegisterForm onSubmit={this.onSubmit.bind(this)} />;
+    }
+    return;
+  }
+
+  onSubmit(values: any) {
+    let startTime: [number, number] = [Number(values.startTimeHour), Number(values.startTimeMin)];
+    let endTime: [number, number] = [Number(values.endTimeHour), Number(values.endTimeMin)];
+
+    if(TimeSlot.minus(endTime, startTime) < 30){
+      window.alert("You must register a time slot longer than 30 minutes");
+      return;
+    }
+
+    if(TimeSlot.minus(endTime, Workstation.rightBound.startTime) > 0){
+      window.alert("You cannot register a time slot after 18:00");
+      return;
+    }
+
+    let newWorkstations = [...this.props.workstations];
+    let error = newWorkstations[values.workstation].addSlot(this.props.currentUser, startTime, endTime, this.props.day);
+    if(error[0] == 0){
+      this.props.onUpdateWorkstations(newWorkstations);
+      window.alert("Time slot registered!");
+      return;
+    }
+    if(error[0] == 1){
+      window.alert("Unknown error!");
+      return;
+    }
+    if(error[0] == 2){
+      window.alert("Slot already taken by " + error[1].toStringFull());
+      return;
+    }
+    if(error[0] == 3){
+      window.alert("This slot conflicts with your another slot at " + error[1].toStringTimeOnly());
+      return;
+    }
   }
 }
 
@@ -217,15 +289,13 @@ export class NameForm extends React.Component<NameFormProps, NameFormState> {
     this.props.onUpdateField(event.target.value);
   }
 
-  handleSubmit(event: any) {
-    //this.props.parent.handleNameChange(this.props.value);
-    this.props.parent.dispatch(changeName(this.props.value));
+  handleSubmit(event: any) {   
+    this.props.parent.dispatch(changeUser(this.props.value));
     event.preventDefault();
   }
 
   handleLogOut(event: any) {
-    //this.props.parent.handleNameChange("");
-    this.props.parent.dispatch(changeName(""));
+    this.props.parent.dispatch(changeUser(""));
     event.preventDefault();
   }
 

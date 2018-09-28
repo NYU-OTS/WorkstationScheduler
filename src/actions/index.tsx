@@ -16,12 +16,12 @@ export interface UpdateFieldValue {
     newValue: string;
 }
 
-export interface ChangeName {
-    type: constants.CHANGE_NAME;
-    newName: string;
+export interface ChangeUser {
+    type: constants.CHANGE_USER;
+    newUserName: string;
 }
 
-export type SchedulerAction = ChangeDay | UpdateWorkstations | ChangeName;
+export type SchedulerAction = ChangeDay | UpdateWorkstations | ChangeUser;
 export type NameFormAction = UpdateFieldValue;
 
 export function changeDay(day: number): ChangeDay {
@@ -45,9 +45,9 @@ export function updateFieldValue(value: string): UpdateFieldValue {
     }
 }
 
-export function changeName(name: string): ChangeName {
+export function changeUser(userName: string): ChangeUser {
     return {
-        type: constants.CHANGE_NAME,
-        newName: name
+        type: constants.CHANGE_USER,
+        newUserName: userName
     }
 }
