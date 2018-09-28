@@ -153,14 +153,6 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
             }
           }
         }
-
-        // for(let j = 0; j < slots.length; ++j){
-          
-        //   schedule[j][1].push([[], i]);          
-        //   for(let k = 0; k < slots.length; ++k){
-        //     schedule[j][1][0].push();
-        //   }
-        // }
       }
 
       return(
@@ -219,48 +211,19 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   }
 
   handleScheduleClick(day: number){
-    //this.setState({day: day});
     this.props.onChangeDay(day);
   }
-
-  // handleRegisterClick(userName: string, day: number, slot: number, workstation: number){
-  //   let newWorkstations = [...this.props.workstations];
-  //   newWorkstations[workstation].addSlot() = userName;
-  //   //this.setState({workstations: newWorkstations});
-  //   this.props.onUpdateWorkstations(newWorkstations);
-  // }
 
   handleRemoveClick(day: number, slot: TimeSlot, workstation: number){
     let newWorkstations = [...this.props.workstations];
     newWorkstations[workstation].removeSlot(slot, day)
-    //this.setState({workstations: newWorkstations});
     this.props.onUpdateWorkstations(newWorkstations);
   }
 
-  // handleNameChange(userName: string){
-  //   //this.setState({userName: userName});
-  //   let user = this.props.users.find(user => {
-  //     return user.name == "userName";
-  //   })
-
-  //   if(user == undefined){
-  //     user = new User(userName);
-  //     this.props.users.push(user);     
-  //   }
-
-  //   this.props.onChangeUser(user);
-  // }
-
   getSlotButton(currentUser: User, registeredUser: User, timeSlot: TimeSlot, day: number, workstation: number){
-    // if(userName == ""){
-    //   return
-    // }
     if(currentUser == registeredUser){
       return(<button onClick={this.handleRemoveClick.bind(this, day, timeSlot, workstation)}>Remove</button>);
     }
-    // if(registeredName == "empty"){
-    //   return(<button onClick={this.handleRegisterClick.bind(this, userName, day, timeSlot, workstation)}>Register</button>)
-    // }
     return
   }
 
