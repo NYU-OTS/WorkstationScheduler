@@ -277,10 +277,12 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
 
     if(TimeSlot.minus(endTime, startTime) < 30){
       window.alert("You must register a time slot longer than 30 minutes");
+      return;
     }
 
     if(TimeSlot.minus(endTime, Workstation.rightBound.startTime) > 0){
       window.alert("You cannot register a time slot after 18:00");
+      return;
     }
 
     let newWorkstations = [...this.props.workstations];
