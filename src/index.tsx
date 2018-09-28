@@ -51,6 +51,7 @@ const About = () => (
   <div>
     <Nav/>
     Author: Yiyang Zeng
+    <br />
     Advisor: Andy Entrekin
   </div>
 );
