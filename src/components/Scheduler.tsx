@@ -192,7 +192,7 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
                                 return (
                                   <div>
                                     {
-                                      timeSlot.toStringFull
+                                      timeSlot.toStringFull()
                                     }
                                     <br />
                                     {
@@ -272,11 +272,36 @@ export class Scheduler extends React.Component<SchedulerProps, SchedulerState>{
   }
 
   onSubmit(values: any) {
+    let startTime: [number, number] = [Number(values.startTimeHour), Number(values.startTimeMin)];
+    let endTime: [number, number] = [Number(values.endTimeHour), Number(values.endTimeMin)];
+
+    if(TimeSlot.minus(endTime, startTime) < 30){
+      window.alert("You must register a time slot longer than 30 minutes");
+    }
+
+    if(TimeSlot.minus(endTime, Workstation.rightBound.startTime) > 0){
+      window.alert("You cannot register a time slot after 18:00");
+    }
+
     let newWorkstations = [...this.props.workstations];
-    let error = newWorkstations[values.workstation].addSlot(this.props.currentUser, [values.startTimeHour, values.startTimeMin], 
-      [values.endTimeHour, values.endTimeMin], this.props.day);
-    console.log("Error:", error)
-    this.props.onUpdateWorkstations(newWorkstations);
+    let error = newWorkstations[values.workstation].addSlot(this.props.currentUser, startTime, endTime, this.props.day);
+    if(error[0] == 0){
+      this.props.onUpdateWorkstations(newWorkstations);
+      window.alert("Time slot registered!");
+      return;
+    }
+    if(error[0] == 1){
+      window.alert("Unknown error!");
+      return;
+    }
+    if(error[0] == 2){
+      window.alert("Slot already taken by " + error[1].toStringFull());
+      return;
+    }
+    if(error[0] == 3){
+      window.alert("This slot conflicts with your another slot at " + error[1].toStringTimeOnly());
+      return;
+    }
   }
 }
 

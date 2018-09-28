@@ -13,11 +13,15 @@ export class TimeSlot {
 
   //return 1 means lhs > rhs; -1 means lhs < rhs; 0 means lhs == rhs
   static compare(lhs: [number, number], rhs: [number, number]){
-    if(lhs[0] == rhs[0]){
-      if(lhs[1] == rhs[1]){
+    let lhsHour = Number(lhs[0]);
+    let lhsMin = Number(lhs[1]);
+    let rhsHour = Number(rhs[0]);
+    let rhsMin = Number(rhs[1]);
+    if(lhsHour == rhsHour){
+      if(lhsMin == rhsMin){
         return 0;
       }
-      if(lhs[1] > rhs[1]){
+      if(lhsMin == rhsMin){
         return 1;
       }
       else{
@@ -25,7 +29,7 @@ export class TimeSlot {
       }
     }
     else{
-      if(lhs[0] > rhs[0]){
+      if(lhsHour > rhsHour){
         return 1;
       }
       else{
@@ -35,22 +39,25 @@ export class TimeSlot {
   }
 
   //Return the time between the start of this timeslot and the end of the other timeslot in minutes
-  minus(rhs: TimeSlot){
-    let diff: number = this.startTime[1] - rhs.endTime[1] + 60 * (this.startTime[0] - rhs.endTime[0]);
+  static minus(lhs: [number, number], rhs: [number, number]){
+    let diff: number = lhs[1] - rhs[1] + 60 * (lhs[0] - rhs[0]);
     return diff;
   }
 
   ifIntersect(rhs: TimeSlot){
-    console.log(rhs)
     if(
-      TimeSlot.compare(this.startTime, rhs.endTime) == -1 //this.startTime < rhs.endTime
-      && TimeSlot.compare(rhs.startTime, this.startTime) == -1 //rhs.startTime < this.startTime
+      (TimeSlot.compare(this.startTime, rhs.endTime) == -1 ||
+      TimeSlot.compare(this.startTime, rhs.endTime) == 0)//this.startTime <= rhs.endTime
+      && (TimeSlot.compare(rhs.startTime, this.startTime) == -1 ||
+      TimeSlot.compare(rhs.startTime, this.startTime) == 0)//rhs.startTime <= this.startTime
     ){
       return true;
     }
     if(
-      TimeSlot.compare(this.endTime, rhs.endTime) == -1 //this.endTime < rhs.endTime
-      && TimeSlot.compare(rhs.startTime, this.endTime) == -1 //rhs.startTime < this.endTime
+      (TimeSlot.compare(this.endTime, rhs.endTime) == -1 ||
+      TimeSlot.compare(this.endTime, rhs.endTime) == 0)//this.endTime <= rhs.endTime
+      && (TimeSlot.compare(rhs.startTime, this.endTime) == -1 ||
+      TimeSlot.compare(rhs.startTime, this.endTime) == 0)//rhs.startTime <= this.endTime
     ){
       return true;
     }
@@ -71,7 +78,7 @@ export class TimeSlot {
   }
 
   toStringFull(){
-    return this.user + "(" + this.toStringTimeOnly() + ")";
+    return this.user.name + "(" + this.toStringTimeOnly() + ")";
   }
 }
 
@@ -95,39 +102,44 @@ export class Workstation {
   //Error code 1 means unknown error
   //Error code 2 means the input slot is intersecting with an existing slot 
   //Error code 3 means the user has already registered a slot intersecting with the input slot
-  public addSlot(user: User, startTime: [number, number], endTime: [number, number], day: number){
+  public addSlot(user: User, startTime: [number, number], endTime: [number, number], day: number): [number, TimeSlot]{
     let slots = this.slots[day];
     let newSlot = new TimeSlot(startTime, endTime, user);
     
-    //For the first slot added
+    //For the first slot added in a day
+    let duplicateSlot = user.ifDuplicate(newSlot, day);
+    if(duplicateSlot[0]){
+      return [3, duplicateSlot[1]]; 
+    }
     if(slots.length <= 0){
       user.addTimeSlot(newSlot, day);
       slots.push(newSlot);
       this.recalculateAvailability(day);
-      return 0;
+      return [0, newSlot];
     }
 
     for(let i: number = 0; i < slots.length; ++i){
       //If the input slot is intersecting with an existing slot, return an error
       if(newSlot.ifIntersect(slots[i])){
-        return 2;
+        return [2, slots[i]];
       }
 
       //If the input slot is before the slot at index i, insert the input slot
       if(TimeSlot.compare(endTime, slots[i].startTime)){
-        if(user.ifDuplicate(newSlot, day)){
-          return 3; 
+        let duplicateSlot = user.ifDuplicate(newSlot, day);
+        if(duplicateSlot[0]){
+          return [3, duplicateSlot[1]]; 
         }
         else{
           user.addTimeSlot(newSlot, day);
           slots.splice(i, 0, newSlot);
           this.recalculateAvailability(day);
-          return 0;
+          return [0, newSlot];
         }               
       }
     }
 
-    return 1;
+    return [1, newSlot];
   }
 
   public removeSlot(slot: TimeSlot, day: number){
@@ -147,7 +159,7 @@ export class Workstation {
             timeSlot = Workstation.rightBound;
           }
           
-          if(timeSlot.minus(lastSlot) >= 30){
+          if(TimeSlot.minus(timeSlot.startTime, lastSlot.endTime) >= 30){
             availableToday = true;
             break;
           }
@@ -164,7 +176,7 @@ export class Workstation {
             timeSlot = Workstation.rightBound;
           }
           
-          if(timeSlot.minus(lastSlot) >= 30){
+          if(TimeSlot.minus(timeSlot.startTime, lastSlot.endTime) >= 30){
             availableToday = true;
             break;
           }
@@ -193,13 +205,14 @@ export class User{
     this.slots[day].splice(index, 1);
   }
 
-  public ifDuplicate(slot: TimeSlot, day: number){
+  public ifDuplicate(slot: TimeSlot, day: number): [boolean, TimeSlot]{
     let slots = this.slots[day];
     for(let i: number = 0; i < slots.length; ++i){
+      console.log("Duplicate?", slot == slots[i], slot.ifIntersect(slots[i]));
       if(slot != slots[i] && slot.ifIntersect(slots[i])){
-        return true;
+        return [true, slots[i]];
       }
     }
-    return false;
+    return [false, slot];
   }
 }
